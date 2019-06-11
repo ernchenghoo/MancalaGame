@@ -4,6 +4,8 @@ import MainSystem.MainApp
 
 import scalafxml.core.macros.sfxml
 import scalafx.scene.control._
+import scala.collection.mutable.ListBuffer
+import scala.collection.Iterator
 
 import javafx.scene.layout.BackgroundImage
 import javafx.scene.layout.BackgroundRepeat
@@ -213,7 +215,7 @@ class BigGameController(
 		        Thread.sleep(1500)
 
 		        //grabFromHoleAndAddToHandAnimation(HoleIndex) HoleIndex is which hole to be grab from
-		        grabFromHoleAndAddToHandAnimation(1)
+		        grabFromHoleAndAddToHandAnimation(1,amountInHole)
 		        //grabFromHoleAndAddToHandAnimation need 1500 miliseconds to do animation we wait for animation to finish
 		        Thread.sleep(1500)
 
@@ -272,656 +274,106 @@ class BigGameController(
 
 	
 	
-
 	def setHoleHoverEffect() = {
-		//set hole hover in 
-		hole0.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole0.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole0.setStyle(greenBackgroundHoleCSS)
 
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole0.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole0.setStyle(redBackgroundHoleCSS)
+		var holes = new ListBuffer[TextField]()
+		holes += (hole0,hole1,hole2,hole3,hole4,hole5,hole6,hole7,hole8,hole9,hole10,hole11,hole12,hole13,hole14,hole15,hole16,hole17)
+
+		//hole 0 to 8 is for player 2 to choose
+		for(index <- 0 to 8){
+			var currentHoleObject = holes(index);
+			//set hole hover in 
+			currentHoleObject.onMouseEntered = (event: MouseEvent) =>  {
+			
+				if(canChooseHole == true && currentPlayer == "Player2" && currentHoleObject.getText != "0"){
+					//if it is Player 1 means hole 0 to hole 6 can be choose
+					//set cursor hand
+				  	currentHoleObject.setCursor(Cursor.HAND)
+				  	//set background green
+				  	currentHoleObject.setStyle(greenBackgroundHoleCSS)
+
+				}else{
+					//if it is not Player 1 means hole cannot be choose
+					//show a Cursor that indicate cannot choose
+				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
+				  	//change background red
+				  	currentHoleObject.setStyle(redBackgroundHoleCSS)
+				}
+			}
+
+			//set hole hover out
+			currentHoleObject.onMouseExited = (event: MouseEvent) =>  {
+				//change hole background color to normal
+				currentHoleObject.setStyle(normalBackgroundHoleCSS)
 			}
 		}
 
-		//set hole hover out
-		hole0.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole0.setStyle(normalBackgroundHoleCSS)
-		}
+		//hole 9 to 17 is for player 1 to choose
+		for(index <- 9 to 17){
+			var currentHoleObject = holes(index);
+			//set hole hover in 
+			currentHoleObject.onMouseEntered = (event: MouseEvent) =>  {
+			
+				if(canChooseHole == true && currentPlayer == "Player1" && currentHoleObject.getText != "0"){
+					//if it is Player 1 means hole 0 to hole 6 can be choose
+					//set cursor hand
+				  	currentHoleObject.setCursor(Cursor.HAND)
+				  	//set background green
+				  	currentHoleObject.setStyle(greenBackgroundHoleCSS)
 
-		//set hole hover in 
-		hole1.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole1.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole1.setStyle(greenBackgroundHoleCSS)
+				}else{
+					//if it is not Player 1 means hole cannot be choose
+					//show a Cursor that indicate cannot choose
+				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
+				  	//change background red
+				  	currentHoleObject.setStyle(redBackgroundHoleCSS)
+				}
+			}
 
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole1.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole1.setStyle(redBackgroundHoleCSS)
+			//set hole hover out
+			currentHoleObject.onMouseExited = (event: MouseEvent) =>  {
+				//change hole background color to normal
+				currentHoleObject.setStyle(normalBackgroundHoleCSS)
 			}
 		}
 
-		//set hole hover out
-		hole1.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole1.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole2.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole2.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole2.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole2.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole2.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole2.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole2.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole3.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole3.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole3.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole3.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole3.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole3.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole3.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole3.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole3.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole3.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole3.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole3.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole3.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole3.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole4.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole4.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole4.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole4.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole4.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole4.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole4.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole5.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole5.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole5.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole5.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole5.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole5.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole5.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole6.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 1 means hole 0 to hole 6 can be choose
-				//set cursor hand
-			  	hole6.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole6.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 1 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole6.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole6.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole6.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole6.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//-----------------------------Hole 7 to 13--------------------------------------------------------------------
-		//set hole hover in 
-		hole7.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole7.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole7.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole7.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole7.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole7.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole7.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole8.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player1"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole8.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole8.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole8.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole8.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole8.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole8.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole9.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole9.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole9.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole9.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole9.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole9.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole9.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole10.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole10.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole10.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole10.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole10.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole10.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole10.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole11.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole11.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole11.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole11.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole11.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole11.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole11.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole12.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole12.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole12.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole12.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole12.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole12.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole12.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole13.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole13.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole13.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole13.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole13.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole13.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole13.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole14.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole14.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole14.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole14.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole14.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole14.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole14.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole15.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole15.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole15.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole15.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole15.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole15.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole15.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole16.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole16.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole16.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole16.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole16.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole16.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole16.setStyle(normalBackgroundHoleCSS)
-		}
-
-		//set hole hover in 
-		hole17.onMouseEntered = (event: MouseEvent) =>  {
-		
-			if(canChooseHole == true && currentPlayer == "Player2"){
-				//if it is Player 2 means hole 7 to hole 13 can be choose
-				//set cursor hand
-			  	hole17.setCursor(Cursor.HAND)
-			  	//set background green
-			  	hole17.setStyle(greenBackgroundHoleCSS)
-
-			}else{
-				//if it is not Player 2 means hole cannot be choose
-				//show a Cursor that indicate cannot choose
-			  	hole17.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole17.setStyle(redBackgroundHoleCSS)
-			}
-		}
-
-		//set hole hover out
-		hole17.onMouseExited = (event: MouseEvent) =>  {
-			//change hole background color to normal
-			hole17.setStyle(normalBackgroundHoleCSS)
-		}
 	}
 
 	def initializeHoleOnAction() = {
 
-		hole0.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(0)
-				//show a Cursor that indicate cannot choose
-			  	hole0.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole0.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole1.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(1)
-				//show a Cursor that indicate cannot choose
-			  	hole1.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole1.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole2.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(2)
-				//show a Cursor that indicate cannot choose
-			  	hole2.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole2.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole3.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(3)
-				//show a Cursor that indicate cannot choose
-			  	hole3.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole3.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole4.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(4)
-				//show a Cursor that indicate cannot choose
-			  	hole4.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole4.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole5.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(5)
-				//show a Cursor that indicate cannot choose
-			  	hole5.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole5.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole6.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(6)
-				//show a Cursor that indicate cannot choose
-			  	hole6.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole6.setStyle(redBackgroundHoleCSS) 
-			} 
+		var holes = new ListBuffer[TextField]()
+		holes += (hole0,hole1,hole2,hole3,hole4,hole5,hole6,hole7,hole8,hole9,hole10,hole11,hole12,hole13,hole14,hole15,hole16,hole17)
+
+		//hole 0 to 8 is for player 2 to choose
+		for(index <- 0 to 8){
+			var currentHoleObject = holes(index);
+
+			currentHoleObject.onMouseClicked = (event: MouseEvent) =>  {  
+				if(canChooseHole == true && currentPlayer == "Player2" && currentHoleObject.getText != "0"){ 
+					chooseHole(index)
+					//show a Cursor that indicate cannot choose
+				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
+				  	//change background red
+				  	currentHoleObject.setStyle(redBackgroundHoleCSS) 
+				} 
+			}
+
 		}
 
-		hole7.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(7)
-				//show a Cursor that indicate cannot choose
-			  	hole7.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole7.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole8.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
-				chooseHole(8)
-				//show a Cursor that indicate cannot choose
-			  	hole8.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole8.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
+		//hole 9 to 17 is for player 1 to choose
+		for(index <- 9 to 17){
+			var currentHoleObject = holes(index);
 
-		/*----------------------------Hole 9 to Hole 17----------------------------------------------------*/
-		
-		hole9.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(9)
-				//show a Cursor that indicate cannot choose
-			  	hole9.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole9.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole10.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(10)
-				//show a Cursor that indicate cannot choose
-			  	hole10.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole10.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole11.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(11)
-				//show a Cursor that indicate cannot choose
-			  	hole11.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole11.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole12.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(12)
-				//show a Cursor that indicate cannot choose
-			  	hole12.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole12.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-		hole13.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(13)
-				//show a Cursor that indicate cannot choose
-			  	hole13.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole13.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
+			currentHoleObject.onMouseClicked = (event: MouseEvent) =>  {  
+				if(canChooseHole == true && currentPlayer == "Player1" && currentHoleObject.getText != "0"){ 
+					chooseHole(index)
+					//show a Cursor that indicate cannot choose
+				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
+				  	//change background red
+				  	currentHoleObject.setStyle(redBackgroundHoleCSS) 
+				} 
+			}
 
-		hole14.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(14)
-				//show a Cursor that indicate cannot choose
-			  	hole14.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole14.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-
-		hole15.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(15)
-				//show a Cursor that indicate cannot choose
-			  	hole15.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole15.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-
-		hole16.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(16)
-				//show a Cursor that indicate cannot choose
-			  	hole16.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole16.setStyle(redBackgroundHoleCSS) 
-			} 
-		}
-
-		hole17.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
-				chooseHole(17)
-				//show a Cursor that indicate cannot choose
-			  	hole17.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
-			  	//change background red
-			  	hole17.setStyle(redBackgroundHoleCSS) 
-			} 
 		}
 	}
 
@@ -1246,7 +698,7 @@ class BigGameController(
 		
 	}
 
-	def grabFromHoleAndAddToHandAnimation(holeIndex: Int) = {
+	def grabFromHoleAndAddToHandAnimation(holeIndex: Int, handAmount:Int) = {
 		//use Platform runlater because if you call UI object in thread you need to use this function
 		Platform.runLater(new Runnable() {
        		override def run {
@@ -1279,7 +731,7 @@ class BigGameController(
 				var newHole:TextField = new TextField();
 				newHole.setLayoutX(holeReferenceObject.getLayoutX())
 				newHole.setLayoutY(holeReferenceObject.getLayoutY())
-				newHole.setText(holeReferenceObject.getText)
+				newHole.setText(handAmount.toString)
 				newHole.setStyle(normalBackgroundHoleCSS)
 				newHole.prefWidth = 50
 				newHole.prefHeight = 50
@@ -1316,7 +768,7 @@ class BigGameController(
 					myGameBoard.getChildren().remove(newHole)
 
 					//play add Score animation
-					addAmountToHandAnimation(holeReferenceObject.getText)					
+					addAmountToHandAnimation(handAmount.toString)					
 					
 				}
 
