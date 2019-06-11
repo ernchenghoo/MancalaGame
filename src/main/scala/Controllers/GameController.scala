@@ -1,6 +1,9 @@
 package Controllers
 
 import MainSystem.MainApp
+import Models.gameLogic
+import scala.collection.mutable.ListBuffer
+import scala.collection.Iterator
 
 import scalafxml.core.macros.sfxml
 import scalafx.scene.control._
@@ -121,9 +124,7 @@ class GameController(
 	//initialize all hole hover effect
 	setHoleHoverEffect()
 	
-	initializeHoleOnAction()
-
-
+	initializeHoleOnAction()	
 
 	def changePlayer() = {
 		if(currentPlayer == "Player1"){
@@ -175,39 +176,67 @@ class GameController(
 				}
 
 				//amount of seed in the Hole
-				var amountInHole: Int = holeChosenObject.getText().toInt 
+				var amountInHole: Int = holeChosenObject.getText().toInt		
 
+				var holes = new ListBuffer[TextField]()
+				holes += (hole0,hole1,hole2,hole3,hole4,hole5,hole6,hole7,hole8,hole9,hole10,hole11,hole12,hole13)
 				
-				//***testing Animation***
-				for( x <- 0 to 13){
+
+				var holePointer = holeIndex
+
+				grabFromHoleAndAddToHandAnimation(holeIndex, amountInHole) //grab all stones from chosen hole
+				Platform.runLater(new Runnable() {
+		       		override def run {
+		       			holeChosenObject.text = "0" // set hole value to 0	
+						
+		       		}
+		       	});
+				Thread.sleep(1500)
+							
+				var amountInHand = amountInHole
+				hand.text = amountInHand.toString
+				amountInHole = 0
+
+				while ( amountInHand > 0){
+
+					for (hole <- holes) {
+						if (holes.indexOf(hole) == holePointer) {
+							var holeNewAmount = (holes(holePointer+1).getText().toInt) + 1
+							holes(holePointer+1).text = holeNewAmount.toString
+						}
+					}
+ 
 					//setHoleBackgroundToYellow(holeIndex) HoleIndex is which hole to be grab from
-		        	setHoleBackgroundToYellow(x)
+		        	setHoleBackgroundToYellow(holePointer+1)
 
 		        	//minusOneAtHoleAnimation(holeIndex) HoleIndex is which hole to be grab from
-		        	minusOneAtHoleAnimation(x)
+		        	addOneAtHoleAnimation(holePointer+1)
 		        	//minusOneAtHoleAnimation need 500 miliseconds to do animation we wait for it to done
 		       		Thread.sleep(500)
 
 		       		//setHoleBackgroundToNormal(holeIndex) HoleIndex is which hole to be grab from
-		       		setHoleBackgroundToNormal(x)
+		       		setHoleBackgroundToNormal(holePointer+1)
+
+		       		holePointer += 1
+		       		amountInHand = amountInHand - 1
 		        }		 
 
-		        for( x <- 0 to 13){
-		        	setHoleBackgroundToYellow(x)
-		        	addOneAtHoleAnimation(x)
-		       		Thread.sleep(500)
-		       		setHoleBackgroundToNormal(x)
-		        }		     
+		        // for( x <- 0 to 13){
+		        // 	setHoleBackgroundToYellow(x)
+		        // 	addOneAtHoleAnimation(x)
+		       	// 	Thread.sleep(500)
+		       	// 	setHoleBackgroundToNormal(x)
+		        // }		     
 
 		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation(HoleIndex) HoleIndex is which hole to be grab from
-		        grabFromHoleAndAddScoreToCurrentPlayerAnimation(1)
+		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation(1)
 		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation need 1500 miliseconds to do animation we wait for animation to finish
-		        Thread.sleep(1500)
+		        //Thread.sleep(1500)
 
 		        //grabFromHoleAndAddToHandAnimation(HoleIndex) HoleIndex is which hole to be grab from
-		        grabFromHoleAndAddToHandAnimation(1)
+		        
 		        //grabFromHoleAndAddToHandAnimation need 1500 miliseconds to do animation we wait for animation to finish
-		        Thread.sleep(1500)
+		        //Thread.sleep(1500)
 
 		        //***end testing animation***
 
@@ -269,7 +298,7 @@ class GameController(
 		//set hole hover in 
 		hole0.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole0.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole0.setCursor(Cursor.HAND)
@@ -294,7 +323,7 @@ class GameController(
 		//set hole hover in 
 		hole1.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole1.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole1.setCursor(Cursor.HAND)
@@ -319,7 +348,7 @@ class GameController(
 		//set hole hover in 
 		hole2.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole2.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole2.setCursor(Cursor.HAND)
@@ -344,7 +373,7 @@ class GameController(
 		//set hole hover in 
 		hole3.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole3.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole3.setCursor(Cursor.HAND)
@@ -369,7 +398,7 @@ class GameController(
 		//set hole hover in 
 		hole3.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole4.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole3.setCursor(Cursor.HAND)
@@ -394,7 +423,7 @@ class GameController(
 		//set hole hover in 
 		hole4.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole4.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole4.setCursor(Cursor.HAND)
@@ -419,7 +448,7 @@ class GameController(
 		//set hole hover in 
 		hole5.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole5.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole5.setCursor(Cursor.HAND)
@@ -444,7 +473,7 @@ class GameController(
 		//set hole hover in 
 		hole6.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player1"){
+			if(canChooseHole == true && currentPlayer == "Player2" && hole6.getText != "0"){
 				//if it is Player 1 means hole 0 to hole 6 can be choose
 				//set cursor hand
 			  	hole6.setCursor(Cursor.HAND)
@@ -470,7 +499,7 @@ class GameController(
 		//set hole hover in 
 		hole7.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player2"){
+			if(canChooseHole == true && currentPlayer == "Player1" && hole7.getText != "0"){
 				//if it is Player 2 means hole 7 to hole 13 can be choose
 				//set cursor hand
 			  	hole7.setCursor(Cursor.HAND)
@@ -495,7 +524,7 @@ class GameController(
 		//set hole hover in 
 		hole8.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player2"){
+			if(canChooseHole == true && currentPlayer == "Player1" && hole8.getText != "0"){
 				//if it is Player 2 means hole 7 to hole 13 can be choose
 				//set cursor hand
 			  	hole8.setCursor(Cursor.HAND)
@@ -520,7 +549,7 @@ class GameController(
 		//set hole hover in 
 		hole9.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player2"){
+			if(canChooseHole == true && currentPlayer == "Player1" && hole9.getText != "0"){
 				//if it is Player 2 means hole 7 to hole 13 can be choose
 				//set cursor hand
 			  	hole9.setCursor(Cursor.HAND)
@@ -545,7 +574,7 @@ class GameController(
 		//set hole hover in 
 		hole10.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player2"){
+			if(canChooseHole == true && currentPlayer == "Player1" && hole10.getText != "0"){
 				//if it is Player 2 means hole 7 to hole 13 can be choose
 				//set cursor hand
 			  	hole10.setCursor(Cursor.HAND)
@@ -570,7 +599,7 @@ class GameController(
 		//set hole hover in 
 		hole11.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player2"){
+			if(canChooseHole == true && currentPlayer == "Player1" && hole11.getText != "0"){
 				//if it is Player 2 means hole 7 to hole 13 can be choose
 				//set cursor hand
 			  	hole11.setCursor(Cursor.HAND)
@@ -595,7 +624,7 @@ class GameController(
 		//set hole hover in 
 		hole12.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player2"){
+			if(canChooseHole == true && currentPlayer == "Player1" && hole12.getText != "0"){
 				//if it is Player 2 means hole 7 to hole 13 can be choose
 				//set cursor hand
 			  	hole12.setCursor(Cursor.HAND)
@@ -620,7 +649,7 @@ class GameController(
 		//set hole hover in 
 		hole13.onMouseEntered = (event: MouseEvent) =>  {
 		
-			if(canChooseHole == true && currentPlayer == "Player2"){
+			if(canChooseHole == true && currentPlayer == "Player1" && hole13.getText != "0"){
 				//if it is Player 2 means hole 7 to hole 13 can be choose
 				//set cursor hand
 			  	hole13.setCursor(Cursor.HAND)
@@ -646,7 +675,7 @@ class GameController(
 	def initializeHoleOnAction() = {
 
 		hole0.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
+			if(canChooseHole == true && currentPlayer == "Player2"){ 
 				chooseHole(0)
 				//show a Cursor that indicate cannot choose
 			  	hole0.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -655,7 +684,7 @@ class GameController(
 			} 
 		}
 		hole1.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
+			if(canChooseHole == true && currentPlayer == "Player2"){ 
 				chooseHole(1)
 				//show a Cursor that indicate cannot choose
 			  	hole1.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -664,7 +693,7 @@ class GameController(
 			} 
 		}
 		hole2.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
+			if(canChooseHole == true && currentPlayer == "Player2"){ 
 				chooseHole(2)
 				//show a Cursor that indicate cannot choose
 			  	hole2.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -673,7 +702,7 @@ class GameController(
 			} 
 		}
 		hole3.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
+			if(canChooseHole == true && currentPlayer == "Player2"){ 
 				chooseHole(3)
 				//show a Cursor that indicate cannot choose
 			  	hole3.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -682,7 +711,7 @@ class GameController(
 			} 
 		}
 		hole4.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
+			if(canChooseHole == true && currentPlayer == "Player2"){ 
 				chooseHole(4)
 				//show a Cursor that indicate cannot choose
 			  	hole4.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -691,7 +720,7 @@ class GameController(
 			} 
 		}
 		hole5.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
+			if(canChooseHole == true && currentPlayer == "Player2"){ 
 				chooseHole(5)
 				//show a Cursor that indicate cannot choose
 			  	hole5.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -700,7 +729,7 @@ class GameController(
 			} 
 		}
 		hole6.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player1"){ 
+			if(canChooseHole == true && currentPlayer == "Player2"){ 
 				chooseHole(6)
 				//show a Cursor that indicate cannot choose
 			  	hole6.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -711,7 +740,7 @@ class GameController(
 
 		/*----------------------------Hole 7 to Hole 13----------------------------------------------------*/
 		hole7.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
+			if(canChooseHole == true && currentPlayer == "Player1"){ 
 				chooseHole(7)
 				//show a Cursor that indicate cannot choose
 			  	hole7.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -720,7 +749,7 @@ class GameController(
 			} 
 		}
 		hole8.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
+			if(canChooseHole == true && currentPlayer == "Player1"){ 
 				chooseHole(8)
 				//show a Cursor that indicate cannot choose
 			  	hole8.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -729,7 +758,7 @@ class GameController(
 			} 
 		}
 		hole9.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
+			if(canChooseHole == true && currentPlayer == "Player1"){ 
 				chooseHole(9)
 				//show a Cursor that indicate cannot choose
 			  	hole9.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -738,7 +767,7 @@ class GameController(
 			} 
 		}
 		hole10.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
+			if(canChooseHole == true && currentPlayer == "Player1"){ 
 				chooseHole(10)
 				//show a Cursor that indicate cannot choose
 			  	hole10.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -747,7 +776,7 @@ class GameController(
 			} 
 		}
 		hole11.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
+			if(canChooseHole == true && currentPlayer == "Player1"){ 
 				chooseHole(11)
 				//show a Cursor that indicate cannot choose
 			  	hole11.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -756,7 +785,7 @@ class GameController(
 			} 
 		}
 		hole12.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
+			if(canChooseHole == true && currentPlayer == "Player1"){ 
 				chooseHole(12)
 				//show a Cursor that indicate cannot choose
 			  	hole12.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -765,7 +794,7 @@ class GameController(
 			} 
 		}
 		hole13.onMouseClicked = (event: MouseEvent) =>  {  
-			if(canChooseHole == true && currentPlayer == "Player2"){ 
+			if(canChooseHole == true && currentPlayer == "Player1"){ 
 				chooseHole(13)
 				//show a Cursor that indicate cannot choose
 			  	hole13.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
@@ -1076,7 +1105,7 @@ class GameController(
 		
 	}
 
-	def grabFromHoleAndAddToHandAnimation(holeIndex: Int) = {
+	def grabFromHoleAndAddToHandAnimation(holeIndex: Int, handAmount:Int) = {
 		//use Platform runlater because if you call UI object in thread you need to use this function
 		Platform.runLater(new Runnable() {
        		override def run {
@@ -1105,7 +1134,7 @@ class GameController(
 				var newHole:TextField = new TextField();
 				newHole.setLayoutX(holeReferenceObject.getLayoutX())
 				newHole.setLayoutY(holeReferenceObject.getLayoutY())
-				newHole.setText(holeReferenceObject.getText)
+				newHole.setText(handAmount.toString)
 				newHole.setStyle(normalBackgroundHoleCSS)
 				newHole.prefWidth = 50
 				newHole.prefHeight = 50
@@ -1142,7 +1171,7 @@ class GameController(
 					myGameBoard.getChildren().remove(newHole)
 
 					//play add Score animation
-					addAmountToHandAnimation(holeReferenceObject.getText)					
+					addAmountToHandAnimation(handAmount.toString)					
 					
 				}
 
