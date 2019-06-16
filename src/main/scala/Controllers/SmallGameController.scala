@@ -1,11 +1,12 @@
 package Controllers
 
 import MainSystem.MainApp
+import util.control._
+import scala.collection.mutable.ListBuffer
+import scala.collection.Iterator
 
 import scalafxml.core.macros.sfxml
 import scalafx.scene.control._
-import scala.collection.mutable.ListBuffer
-import scala.collection.Iterator
 
 import javafx.scene.layout.BackgroundImage
 import javafx.scene.layout.BackgroundRepeat
@@ -35,7 +36,6 @@ import scalafx.application.Platform
 //animation class
 import scalafx.animation.TranslateTransition
 import scalafx.util.Duration
-
 
 @sfxml
 class SmallGameController(
@@ -72,7 +72,8 @@ class SmallGameController(
 
 	var canChooseHole: Boolean= true
 
-
+	var holes = new ListBuffer[TextField]()
+	holes += (hole0,hole1,hole2,hole3,hole4,hole5,hole6,hole7,hole8,hole9)
 
 	//set title image
 	title.setImage(new Image(getClass.getResourceAsStream("/Images/Game/MancalaGameTitle.png")));
@@ -143,7 +144,7 @@ class SmallGameController(
 	}
 
 	//chooseHole() will be called when player press hole
-	def chooseHole(holeIndex: Int): Unit = {		
+	def chooseHole(holeIndex: Int, player: Int): Unit = {		
 		
 		//run in thread so that it will not hang the User Interface
 		val myThread = new Thread {
@@ -151,77 +152,155 @@ class SmallGameController(
 		    	//set canChooseHole to false so that we can block input before Algorithm finish
 				canChooseHole = false
 
-				//this is the hole that is chosen
-				var holeChosenObject: TextField = null
-
-				// get object reference according to holeIndex
-				holeIndex match {
-				    case 0  => holeChosenObject = hole0
-				    case 1  => holeChosenObject = hole1
-				    case 2  => holeChosenObject = hole2
-				    case 3  => holeChosenObject = hole3
-				    case 4  => holeChosenObject = hole4
-				    case 5  => holeChosenObject = hole5
-				    case 6  => holeChosenObject = hole6
-				    case 7  => holeChosenObject = hole7
-				    case 8  => holeChosenObject = hole8
-				    case 9  => holeChosenObject = hole9
-				}
-
-				//amount of seed in the Hole
-				var amountInHole: Int = holeChosenObject.getText().toInt 
+				//this is the hole that is chosen						
 
 				
-				//***testing Animation***
-				for( x <- 0 to 9){
+				//amount of seed in the Hole
+				var amountInHole: Int = holes(holeIndex).getText().toInt
+
+				var holePointer = holeIndex
+				var nextHole = holePointer+1
+				
+				
+
+				grabFromHoleAndAddToHandAnimation(holeIndex, amountInHole) //grab all stones from chosen hole
+				Platform.runLater(new Runnable() {
+		       		override def run {
+		       			holes(holeIndex).text = "0" // set hole value to 0	
+						
+		       		}
+		       	});
+				Thread.sleep(1500)
+							
+				var amountInHand = amountInHole
+				hand.text = amountInHand.toString
+				amountInHole = 0
+
+				while ( amountInHand > 0){
+
+					if (holePointer >= holes.size-1) {
+						nextHole = 0
+					}
+
+					for (hole <- holes) {
+						if (holes.indexOf(hole) == holePointer) {
+							var holeNewAmount = (holes(nextHole).getText().toInt) + 1
+							holes(nextHole).text = holeNewAmount.toString
+						}
+					}
+ 
 					//setHoleBackgroundToYellow(holeIndex) HoleIndex is which hole to be grab from
-		        	setHoleBackgroundToYellow(x)
+		        	setHoleBackgroundToYellow(nextHole)
 
 		        	//minusOneAtHoleAnimation(holeIndex) HoleIndex is which hole to be grab from
-		        	minusOneAtHoleAnimation(x)
+		        	addOneAtHoleAnimation(nextHole)
+		        	hand.text = ((hand.getText().toInt) - 1).toString
 		        	//minusOneAtHoleAnimation need 500 miliseconds to do animation we wait for it to done
-		       		Thread.sleep(500)
+		       		Thread.sleep(200)
 
 		       		//setHoleBackgroundToNormal(holeIndex) HoleIndex is which hole to be grab from
-		       		setHoleBackgroundToNormal(x)
-		        }		 
+		       		setHoleBackgroundToNormal(nextHole)		       		
+					
+					if (holePointer == holes.size-1) {
+						holePointer = 0
+					}
+					else {
+						holePointer += 1
+					}					
+					nextHole = holePointer + 1
+		       		amountInHand = amountInHand - 1
+		        }
 
-		        for( x <- 0 to 9){
-		        	setHoleBackgroundToYellow(x)
-		        	addOneAtHoleAnimation(x)
-		       		Thread.sleep(500)
-		       		setHoleBackgroundToNormal(x)
-		        }		     
+		       
+		        if (holePointer >= holes.size-1) {
+						nextHole = 0
+				}
+		    	
+		        val loop = new Breaks
+		        var scoreUpdated = false
+		        //if next hole still got stones, take and distribute
+		        if (holes(nextHole).getText().toInt > 0) {
+		        	chooseHole (nextHole, player)       	
+		        }
+		        else {
+		        	loop.breakable {		        		
+		        		var checkHolePointer = nextHole+1
+		        		if (checkHolePointer > holes.size-1) {
+		        			checkHolePointer = 0
+		        		}
+		        		//check current hole to hole holes.size-1, if any hole got stone, take
+		        		for (x <- checkHolePointer to holes.size-1) {
+		        			if (holes(x).getText().toInt != 0) {
+			        			if (player == 1) {
+			        				player1Score.text = (player1Score.getText().toInt + 
+			        					(holes(x).getText().toInt)).toString
+			        				holes(x).text = "0"
+			        				scoreUpdated = true
+		        					loop.break
+		        				}
+		        				else {
+			        				player2Score.text = (player2Score.getText().toInt + 
+			        					(holes(x).getText().toInt)).toString
+			        				holes(x).text = "0"
+			        				scoreUpdated = true		        					
+		        					loop.break
+	        					}		        				
+		        			}
+		        		}
+	        			//if next hole to hole holes.size-1 all empty, check from 0 to current hole
+	        			if (!scoreUpdated) {
+	        				for (x <- 0 to checkHolePointer-1) {
+	        					if (holes(x).getText().toInt != 0) {
+				        			if (player == 1) {
+				        				player1Score.text = (player1Score.getText().toInt + 
+				        					(holes(x).getText().toInt)).toString
+				        				holes(x).text = "0"
+				        				scoreUpdated = true									
+			        					loop.break
+			        				}
+			        				else {
+				        				player2Score.text = (player2Score.getText().toInt + 
+				        					(holes(x).getText().toInt)).toString
+				        				holes(x).text = "0"
+				        				scoreUpdated = true	        					
+			        					loop.break
+		        					}		        				 
+		        				}
+        					}
+	        			}	        			        		        		
+		        	}
+		        	 if (scoreUpdated) {
+			        	changePlayer()
+			        }
+			        
+			        var player1NoMoves = true
+			        var player2NoMoves = true
+			        //check if player 2 have no more moves
+			        for (x <- 0 to 6) {
+			        	if (holes(x).getText().toInt > 0) {
+			        		player1NoMoves = false
+			        	}
+			        }
+			        for (x <- 7 to holes.size-1) {
+			        	if (holes(x).getText().toInt > 0) {
+			        		player2NoMoves = false
+			        	}
+			        }
 
-		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation(HoleIndex) HoleIndex is which hole to be grab from
-		        grabFromHoleAndAddScoreToCurrentPlayerAnimation(1)
-		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation need 1500 miliseconds to do animation we wait for animation to finish
-		        Thread.sleep(1500)
-
-		        //grabFromHoleAndAddToHandAnimation(HoleIndex) HoleIndex is which hole to be grab from
-		        grabFromHoleAndAddToHandAnimation(1,amountInHole)
-		        //grabFromHoleAndAddToHandAnimation need 1500 miliseconds to do animation we wait for animation to finish
-		        Thread.sleep(1500)
-
-		        //***end testing animation***
-
-		    
-
-		        /*Do some Algorithm*/
-		        
-
-		        
-		        
-		       	
-		    
-		        
-		        /*Finish Algorithm*/
-
-				/*Set canChooseHole to true so that next player can start playing */
-				canChooseHole = true
-
-				//change to another player
-				changePlayer()
+			       
+			        if (player1NoMoves || player2NoMoves) {
+			        	if (player1Score.getText().toInt > player2Score.getText().toInt) {
+			        		setWinner(1)
+			        	}
+			        	else if (player2Score.getText().toInt > player1Score.getText().toInt) {
+			        		setWinner(2)
+			        	}
+			        }
+			        else {
+			        	canChooseHole = true					
+			        }	        		        	
+		        }
+		       
 		    }
 		}
 
@@ -241,7 +320,7 @@ class SmallGameController(
 
 		//choose bestmove 
 		//i randomly put to choose hole 7 
-		chooseHole(7)
+		//chooseHole(7)
 
 	}
 
@@ -250,19 +329,16 @@ class SmallGameController(
 	//player value to 1 if player 1 wins || player value set to 2 if player 2 wins || player value set to 0 if no one wins(Tie)
 	//player1Score is the score of player1
 	//player2Score is the score of player2
-	def setWinner(player:Int, player1Score: Int, player2Score: Int): Unit = {
+	def setWinner(player:Int): Unit = {
 
 		//redirect to Winner Screen to display the winner
-		MainApp.goToWinnerScreen(player,player1Score,player2Score)
+		MainApp.goToWinnerScreen(player,player1Score.getText().toInt,player2Score.getText().toInt)
 	}
 
 	
 	
 
-	def setHoleHoverEffect() = {
-
-		var holes = new ListBuffer[TextField]()
-		holes += (hole0,hole1,hole2,hole3,hole4,hole5,hole6,hole7,hole8,hole9)
+	def setHoleHoverEffect() = {	
 
 		//hole 0 to 4 is for player 2 to choose
 		for(index <- 0 to 4){
@@ -324,10 +400,7 @@ class SmallGameController(
 
 	}
 
-	def initializeHoleOnAction() = {
-
-		var holes = new ListBuffer[TextField]()
-		holes += (hole0,hole1,hole2,hole3,hole4,hole5,hole6,hole7,hole8,hole9)
+	def initializeHoleOnAction() = {	
 
 		//hole 0 to 4 is for player 2 to choose
 		for(index <- 0 to 4){
@@ -335,7 +408,7 @@ class SmallGameController(
 
 			currentHoleObject.onMouseClicked = (event: MouseEvent) =>  {  
 				if(canChooseHole == true && currentPlayer == "Player2" && currentHoleObject.getText != "0"){ 
-					chooseHole(index)
+					chooseHole(index, 2)
 					//show a Cursor that indicate cannot choose
 				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
 				  	//change background red
@@ -351,7 +424,7 @@ class SmallGameController(
 
 			currentHoleObject.onMouseClicked = (event: MouseEvent) =>  {  
 				if(canChooseHole == true && currentPlayer == "Player1" && currentHoleObject.getText != "0"){ 
-					chooseHole(index)
+					chooseHole(index, 1)
 					//show a Cursor that indicate cannot choose
 				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
 				  	//change background red
