@@ -1,7 +1,7 @@
 package Controllers
 
 import MainSystem.MainApp
-import Models.gameLogic
+import util.control._
 import scala.collection.mutable.ListBuffer
 import scala.collection.Iterator
 
@@ -36,7 +36,7 @@ import scalafx.application.Platform
 //animation class
 import scalafx.animation.TranslateTransition
 import scalafx.util.Duration
-import util.control._
+
 
 
 @sfxml
@@ -184,7 +184,7 @@ class GameController(
 
 				while ( amountInHand > 0){
 
-					if (holePointer == 13) {
+					if (holePointer >= holes.size-1) {
 						nextHole = 0
 					}
 
@@ -207,7 +207,7 @@ class GameController(
 		       		//setHoleBackgroundToNormal(holeIndex) HoleIndex is which hole to be grab from
 		       		setHoleBackgroundToNormal(nextHole)		       		
 					
-					if (holePointer == 13) {
+					if (holePointer == holes.size-1) {
 						holePointer = 0
 					}
 					else {
@@ -217,25 +217,8 @@ class GameController(
 		       		amountInHand = amountInHand - 1
 		        }
 
-		        // for( x <- 0 to 13){
-		        // 	setHoleBackgroundToYellow(x)
-		        // 	addOneAtHoleAnimation(x)
-		       	// 	Thread.sleep(500)
-		       	// 	setHoleBackgroundToNormal(x)
-		        // }		     
-
-		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation(HoleIndex) HoleIndex is which hole to be grab from
-		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation(1)
-		        //grabFromHoleAndAddScoreToCurrentPlayerAnimation need 1500 miliseconds to do animation we wait for animation to finish
-		        //Thread.sleep(1500)
-
-		        //grabFromHoleAndAddToHandAnimation(HoleIndex) HoleIndex is which hole to be grab from
-		        
-		        //grabFromHoleAndAddToHandAnimation need 1500 miliseconds to do animation we wait for animation to finish
-		        //Thread.sleep(1500)
-
-		        //***end testing animation***
-		        if (holePointer == 13) {
+		       
+		        if (holePointer >= holes.size-1) {
 						nextHole = 0
 				}
 		    	
@@ -248,11 +231,11 @@ class GameController(
 		        else {
 		        	loop.breakable {		        		
 		        		var checkHolePointer = nextHole+1
-		        		if (checkHolePointer > 13) {
+		        		if (checkHolePointer > holes.size-1) {
 		        			checkHolePointer = 0
 		        		}
-		        		//check current hole to hole 13, if any hole got stone, take
-		        		for (x <- checkHolePointer to 13) {
+		        		//check current hole to hole holes.size-1, if any hole got stone, take
+		        		for (x <- checkHolePointer to holes.size-1) {
 		        			if (holes(x).getText().toInt != 0) {
 			        			if (player == 1) {
 			        				player1Score.text = (player1Score.getText().toInt + 
@@ -270,7 +253,7 @@ class GameController(
 	        					}		        				
 		        			}
 		        		}
-	        			//if next hole to hole 13 all empty, check from 0 to current hole
+	        			//if next hole to hole holes.size-1 all empty, check from 0 to current hole
 	        			if (!scoreUpdated) {
 	        				for (x <- 0 to checkHolePointer-1) {
 	        					if (holes(x).getText().toInt != 0) {
@@ -287,41 +270,43 @@ class GameController(
 				        				holes(x).text = "0"
 				        				scoreUpdated = true	        					
 			        					loop.break
-		        					}		        				
+		        					}		        				 
 		        				}
         					}
 	        			}	        			        		        		
-		        	}		        	
-		        }
-
-		        if (scoreUpdated) {
-		        	changePlayer()
-		        }
-		        var player2win = true
-		        var player1win = true
-		        //check if player 2 have no more moves
-		        for (x <- 0 to 6) {
-		        	if (holes(x).getText().toInt > 0) {
-		        		player1win = false
 		        	}
-		        }
-		        for (x <- 7 to 13) {
-		        	if (holes(x).getText().toInt > 0) {
-		        		player2win = false
-		        	}
-		        }
+		        	 if (scoreUpdated) {
+			        	changePlayer()
+			        }
+			        
+			        var player1NoMoves = true
+			        var player2NoMoves = true
+			        //check if player 2 have no more moves
+			        for (x <- 0 to 6) {
+			        	if (holes(x).getText().toInt > 0) {
+			        		player1NoMoves = false
+			        	}
+			        }
+			        for (x <- 7 to holes.size-1) {
+			        	if (holes(x).getText().toInt > 0) {
+			        		player2NoMoves = false
+			        	}
+			        }
 
-		        if (player1win) {
-		        	setWinner (1)
+			       
+			        if (player1NoMoves || player2NoMoves) {
+			        	if (player1Score.getText().toInt > player2Score.getText().toInt) {
+			        		setWinner(1)
+			        	}
+			        	else if (player2Score.getText().toInt > player1Score.getText().toInt) {
+			        		setWinner(2)
+			        	}
+			        }
+			        else {
+			        	canChooseHole = true					
+			        }	        		        	
 		        }
-
-		        if (player2win) {
-		        	setWinner (2)
-		        }
-
-		        if (!player1win && !player2win) {
-		        	canChooseHole = true					
-		        }
+		       
 		    }
 		}
 
