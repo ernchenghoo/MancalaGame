@@ -319,7 +319,7 @@ class GameController(
 		for (predict <- 0 to 6){
 			//println("The Hole Chosen is "+predict+" is predicted to get Score: "+PredictHoleCanGetHowMuchMark(predict))
 			
-			if(PredictHoleCanGetHowMuchMark(predict) > bestScore){
+			if(PredictHoleCanGetHowMuchMark(predict) > bestScore && holes(predict).getText().toInt != 0){
 				bestScore = PredictHoleCanGetHowMuchMark(predict);
 				holeShouldBeChosen = predict;
 			}
