@@ -165,9 +165,13 @@ class GameController(
 				
 				//amount of seed in the Hole
 				var amountInHole: Int = holes(holeIndex).getText().toInt
-
-				var holePointer = holeIndex
-				var nextHole = holePointer+1
+				var nextHole = 0				
+				if (holeIndex >= holes.size-1) {
+					nextHole = 0
+				}
+				else {
+					nextHole = holeIndex + 1
+				}
 				
 				
 
@@ -184,18 +188,10 @@ class GameController(
 				hand.text = amountInHand.toString
 				amountInHole = 0
 
-				while ( amountInHand > 0){
+				while (amountInHand > 0){								
 
-					if (holePointer >= holes.size-1) {
-						nextHole = 0
-					}
-
-					for (hole <- holes) {
-						if (holes.indexOf(hole) == holePointer) {
-							var holeNewAmount = (holes(nextHole).getText().toInt) + 1
-							holes(nextHole).text = holeNewAmount.toString
-						}
-					}
+					var holeNewAmount = (holes(nextHole).getText().toInt) + 1
+					holes(nextHole).setText(holeNewAmount.toString)
  
 					//setHoleBackgroundToYellow(holeIndex) HoleIndex is which hole to be grab from
 		        	setHoleBackgroundToYellow(nextHole)
@@ -209,20 +205,15 @@ class GameController(
 		       		//setHoleBackgroundToNormal(holeIndex) HoleIndex is which hole to be grab from
 		       		setHoleBackgroundToNormal(nextHole)		       		
 					
-					if (holePointer == holes.size-1) {
-						holePointer = 0
+					if (nextHole >= holes.size-1) {
+						nextHole = 0
 					}
 					else {
-						holePointer += 1
-					}					
-					nextHole = holePointer + 1
+						nextHole += 1
+					}	
 		       		amountInHand = amountInHand - 1
 		        }
-
 		       
-		        if (holePointer >= holes.size-1) {
-						nextHole = 0
-				}
 		    	
 		        val loop = new Breaks
 		        var scoreUpdated = false
