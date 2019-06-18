@@ -179,13 +179,13 @@ class GameController(
 				Platform.runLater(new Runnable() {
 		       		override def run {
 		       			holes(holeIndex).text = "0" // set hole value to 0	
-						
+						hand.text = amountInHole.toString
 		       		}
 		       	});
 				Thread.sleep(1500)
 							
 				var amountInHand = amountInHole
-				hand.text = amountInHand.toString
+				
 				amountInHole = 0
 
 				while (amountInHand > 0){								
