@@ -37,7 +37,8 @@ import scalafx.application.Platform
 import scalafx.animation.TranslateTransition
 import scalafx.util.Duration
 
-
+import util.control.Breaks._
+import scala.collection.mutable.Map
 
 @sfxml
 class GameController(
@@ -155,6 +156,7 @@ class GameController(
 		//run in thread so that it will not hang the User Interface
 		val myThread = new Thread {
 		    override def run {
+
 		    	//set canChooseHole to false so that we can block input before Algorithm finish
 				canChooseHole = false
 
@@ -320,16 +322,123 @@ class GameController(
 
 
 	def AICalculateBestMove() = {
-		/*calculate best move*/
+		
+		var bestScore:Int = -1;
+		var holeShouldBeChosen:Int = 0;
+		for (predict <- 0 to 6){
+			//println("The Hole Chosen is "+predict+" is predicted to get Score: "+PredictHoleCanGetHowMuchMark(predict))
+			
+			if(PredictHoleCanGetHowMuchMark(predict) > bestScore){
+				bestScore = PredictHoleCanGetHowMuchMark(predict);
+				holeShouldBeChosen = predict;
+			}
+		}
+		
+
+		//bestPredictMove = bestPredictMove - 1;
+
+		chooseHole(holeShouldBeChosen,2);
+	}
+
+	def PredictHoleCanGetHowMuchMark(holeToPredict: Int):Int = {
+		var holeIndex = holeToPredict;
+		var scoreFound = false;
+		var predictedScore:Int = 0;
+
+		var duplicatedBoardHole = Array(holes(0).getText().toInt,holes(1).getText().toInt,holes(2).getText().toInt,holes(3).getText().toInt,holes(4).getText().toInt,
+				holes(5).getText().toInt,holes(6).getText().toInt,holes(7).getText().toInt,holes(8).getText().toInt,holes(9).getText().toInt,holes(10).getText().toInt,
+				holes(11).getText().toInt,holes(12).getText().toInt,holes(13).getText().toInt);
+
+		var keeplooping = true
+		while(keeplooping == true){
+			var duplicateHand = 0;
+
+			//amount of seed in the Hole
+			var amountInHole: Int = duplicatedBoardHole(holeIndex)
+			var holePointer = holeIndex
+			var nextHole = holePointer+1
+			
+
+	       	duplicatedBoardHole(holeIndex) = 0 // set hole value to 0	
+					
+			var amountInHand = amountInHole
+			duplicateHand = amountInHand
+			amountInHole = 0
+
+			while ( amountInHand > 0){
+
+				if (holePointer >= duplicatedBoardHole.size-1) {
+					nextHole = 0
+				}
+
+				for (hole <- 0 to duplicatedBoardHole.size-1) {
+					if (hole == holePointer) {
+						var holeNewAmount = duplicatedBoardHole(nextHole) + 1
+						duplicatedBoardHole(nextHole) = holeNewAmount
+					}
+				}
 
 
+	        	duplicateHand = duplicateHand - 1
 
-		/*end calculate*/
+				if (holePointer == duplicatedBoardHole.size-1) {
+					holePointer = 0
+				}
+				else {
+					holePointer += 1
+				}					
+				nextHole = holePointer + 1
+	       		amountInHand = amountInHand - 1
+	        }
 
-		//choose bestmove 
-		//i randomly put to choose hole 7 
-		//chooseHole(7)
+	       
+	        if (holePointer >= duplicatedBoardHole.size-1) {
+					nextHole = 0
+			}
 
+	        val loop = new Breaks
+	        var scoreUpdated = false
+	        //if next hole still got stones, take and distribute
+	        if (duplicatedBoardHole(nextHole) > 0) {
+	        	holeIndex= nextHole       	
+	        }
+	        else {
+	        	loop.breakable {		        		
+	        		var checkHolePointer = nextHole+1
+	        		if (checkHolePointer > duplicatedBoardHole.size-1) {
+	        			checkHolePointer = 0
+	        		}
+
+	        		//check current hole to hole holes.size-1, if any hole got stone, take
+	        		for (x <- checkHolePointer to duplicatedBoardHole.size-1) {
+	        			if (duplicatedBoardHole(x) != 0) {
+	        				predictedScore = duplicatedBoardHole(x)	        			
+	        				scoreUpdated = true 
+	        				scoreFound = true
+	        				loop.break  				
+	        			}
+	        		}
+	    			//if next hole to hole holes.size-1 all empty, check from 0 to current hole
+	    			if (!scoreUpdated) {
+	    				for (x <- 0 to checkHolePointer-1) {
+	    					if (duplicatedBoardHole(x) != 0) {
+	    						predictedScore = duplicatedBoardHole(x)
+	    						scoreUpdated = true									
+		        				scoreFound= true
+		        				loop.break
+	        				 
+	        				}
+						}
+	    			}	        			        		        		
+	        	}		        	
+	        }
+
+	        if(scoreFound == true){
+	        	keeplooping =false;
+	        }
+
+		}
+    	return predictedScore
 	}
 
 	//call this method when game is end
@@ -592,7 +701,7 @@ class GameController(
 				myGameBoard.getChildren().add(textMinus1);
 
 				//do animation
-				var animation = new TranslateTransition(new Duration(500),textMinus1)
+				var animation = new TranslateTransition(new Duration(200),textMinus1)
 
 				
 				//to destination location
