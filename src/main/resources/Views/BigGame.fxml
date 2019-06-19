@@ -91,7 +91,7 @@
       <VBox alignment="TOP_CENTER" fillWidth="false" prefHeight="235.0" prefWidth="1000.0" BorderPane.alignment="CENTER">
          <children>
             <ImageView fx:id="instruction" fitHeight="150.0" fitWidth="950.0" pickOnBounds="true" preserveRatio="true" />
-            <Button fx:id="quitGameButton" mnemonicParsing="false" onAction="#quitGame" prefHeight="70.0" prefWidth="220.0" style="-fx-focus-color: transparent; -fx-background-color: transparent; -fx-cursor: hand;" />
+            <Button fx:id="quitGameButton" mnemonicParsing="false" onAction="#QuitGame" prefHeight="70.0" prefWidth="220.0" style="-fx-focus-color: transparent; -fx-background-color: transparent; -fx-cursor: hand;" />
          </children>
       </VBox>
    </bottom>
