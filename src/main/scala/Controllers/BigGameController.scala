@@ -37,6 +37,9 @@ import scalafx.application.Platform
 import scalafx.animation.TranslateTransition
 import scalafx.util.Duration
 
+
+import java.util.concurrent.CountDownLatch;
+
 @sfxml
 class BigGameController(
 	val title: ImageView,
@@ -126,13 +129,13 @@ class BigGameController(
 
 
 	//initialize all hole hover effect
-	setHoleHoverEffect()
+	SetHoleHoverEffect()
 	
-	initializeHoleOnAction()
+	InitializeHoleOnAction()
 
 
 
-	def changePlayer() = {
+	def ChangePlayer() = {
 		if(currentPlayer == "Player1"){
 			currentPlayer = "Player2"
 			gameStatus.setText("Player 2 Turn!")
@@ -152,162 +155,257 @@ class BigGameController(
 	}
 
 	//chooseHole() will be called when player press hole
-	def chooseHole(holeIndex: Int, player: Int): Unit = {		
+	def ChooseHole(holeChosen: Int, player: Int): Unit = {		
 		
+		var holeIndex = holeChosen
 		//run in thread so that it will not hang the User Interface
 		val myThread = new Thread {
 		    override def run {
+
 		    	//set canChooseHole to false so that we can block input before Algorithm finish
 				canChooseHole = false
 
 				//this is the hole that is chosen						
 
-				
-				//amount of seed in the Hole
-				var amountInHole: Int = holes(holeIndex).getText().toInt
+				var keeploop = true
 
-				var holePointer = holeIndex
-				var nextHole = holePointer+1
-				
-				
+				while(keeploop==true){
 
-				grabFromHoleAndAddToHandAnimation(holeIndex, amountInHole) //grab all stones from chosen hole
-				Platform.runLater(new Runnable() {
-		       		override def run {
-		       			holes(holeIndex).text = "0" // set hole value to 0	
-						
-		       		}
-		       	});
-				Thread.sleep(1500)
-							
-				var amountInHand = amountInHole
-				hand.text = amountInHand.toString
-				amountInHole = 0
-
-				while ( amountInHand > 0){
-
-					if (holePointer >= holes.size-1) {
+					//amount of seed in the Hole
+					var amountInHole: Int = holes(holeIndex).getText().toInt
+					var nextHole = 0				
+					if (holeIndex >= holes.size-1) {
 						nextHole = 0
-					}
-
-					for (hole <- holes) {
-						if (holes.indexOf(hole) == holePointer) {
-							var holeNewAmount = (holes(nextHole).getText().toInt) + 1
-							holes(nextHole).text = holeNewAmount.toString
-						}
-					}
- 
-					//setHoleBackgroundToYellow(holeIndex) HoleIndex is which hole to be grab from
-		        	setHoleBackgroundToYellow(nextHole)
-
-		        	//minusOneAtHoleAnimation(holeIndex) HoleIndex is which hole to be grab from
-		        	addOneAtHoleAnimation(nextHole)
-		        	hand.text = ((hand.getText().toInt) - 1).toString
-		        	//minusOneAtHoleAnimation need 500 miliseconds to do animation we wait for it to done
-		       		Thread.sleep(200)
-
-		       		//setHoleBackgroundToNormal(holeIndex) HoleIndex is which hole to be grab from
-		       		setHoleBackgroundToNormal(nextHole)		       		
-					
-					if (holePointer == holes.size-1) {
-						holePointer = 0
 					}
 					else {
-						holePointer += 1
-					}					
-					nextHole = holePointer + 1
-		       		amountInHand = amountInHand - 1
-		        }
+						nextHole = holeIndex + 1
+					}
+					
+					
 
-		       
-		        if (holePointer >= holes.size-1) {
-						nextHole = 0
-				}
-		    	
-		        val loop = new Breaks
-		        var scoreUpdated = false
-		        //if next hole still got stones, take and distribute
-		        if (holes(nextHole).getText().toInt > 0) {
-		        	chooseHole (nextHole, player)       	
-		        }
-		        else {
-		        	loop.breakable {		        		
-		        		var checkHolePointer = nextHole+1
-		        		if (checkHolePointer > holes.size-1) {
-		        			checkHolePointer = 0
-		        		}
-		        		//check current hole to hole holes.size-1, if any hole got stone, take
-		        		for (x <- checkHolePointer to holes.size-1) {
-		        			if (holes(x).getText().toInt != 0) {
-			        			if (player == 1) {
-			        				player1Score.text = (player1Score.getText().toInt + 
-			        					(holes(x).getText().toInt)).toString
-			        				holes(x).text = "0"
-			        				scoreUpdated = true
-		        					loop.break
-		        				}
-		        				else {
-			        				player2Score.text = (player2Score.getText().toInt + 
-			        					(holes(x).getText().toInt)).toString
-			        				holes(x).text = "0"
-			        				scoreUpdated = true		        					
-		        					loop.break
-	        					}		        				
-		        			}
-		        		}
-	        			//if next hole to hole holes.size-1 all empty, check from 0 to current hole
-	        			if (!scoreUpdated) {
-	        				for (x <- 0 to checkHolePointer-1) {
-	        					if (holes(x).getText().toInt != 0) {
+					GrabFromHoleAndAddToHandAnimation(holeIndex, amountInHole) //grab all stones from chosen hole
+					Thread.sleep(1500)
+
+					var latchToWaitForJavaFx: CountDownLatch = new CountDownLatch(1);
+
+					Platform.runLater(new Runnable() {
+			       		override def run {
+			       			holes(holeIndex).text = "0" // set hole value to 0	
+							hand.text = amountInHole.toString
+
+							//call this function to release the lock
+							latchToWaitForJavaFx.countDown();
+			       		}
+			       	});
+
+					//wait until latchToWaitForJavaFx.countDown()
+			       	latchToWaitForJavaFx.await();
+					
+								
+					var amountInHand = amountInHole
+					
+					amountInHole = 0
+
+					while (amountInHand > 0){								
+
+						var holeNewAmount = (holes(nextHole).getText().toInt) + 1
+
+						latchToWaitForJavaFx = new CountDownLatch(1);
+
+						Platform.runLater(new Runnable() {
+				       		override def run {
+				       			holes(nextHole).setText(holeNewAmount.toString)
+
+				       			//call this function to release the lock
+				       			latchToWaitForJavaFx.countDown();
+				       		}
+				       	});
+
+						//wait until latchToWaitForJavaFx.countDown()
+				       	latchToWaitForJavaFx.await();
+						
+	 
+						//setHoleBackgroundToYellow(holeIndex) HoleIndex is which hole to be grab from
+			        	SetHoleBackgroundToYellow(nextHole)
+
+			        	//minusOneAtHoleAnimation(holeIndex) HoleIndex is which hole to be grab from
+			        	AddOneAtHoleAnimation(nextHole)
+			        	//minusOneAtHoleAnimation need 200 miliseconds to do animation we wait for it to done
+			       		Thread.sleep(200)
+
+			        	latchToWaitForJavaFx = new CountDownLatch(1);
+
+			        	Platform.runLater(new Runnable() {
+				       		override def run {
+				       			hand.text = ((hand.getText().toInt) - 1).toString
+
+				       			//call this function to release the lock
+				       			latchToWaitForJavaFx.countDown();
+				       		}
+				       	});
+
+				       	//wait until latchToWaitForJavaFx.countDown()
+				       	latchToWaitForJavaFx.await();
+			        	
+			        	
+
+			       		//setHoleBackgroundToNormal(holeIndex) HoleIndex is which hole to be grab from
+			       		SetHoleBackgroundToNormal(nextHole)		       		
+						
+						if (nextHole >= holes.size-1) {
+							nextHole = 0
+						}
+						else {
+							nextHole += 1
+						}	
+			       		amountInHand = amountInHand - 1
+			        }
+			       
+			    	
+			        val loop = new Breaks
+			        var scoreUpdated = false
+			        //if next hole still got stones, take and distribute
+			        if (holes(nextHole).getText().toInt > 0) {
+			        	holeIndex = nextHole       	
+			        }
+			        else {
+			        	loop.breakable {		        		
+			        		var checkHolePointer = nextHole+1
+			        		if (checkHolePointer > holes.size-1) {
+			        			checkHolePointer = 0
+			        		}
+			        		//check current hole to hole holes.size-1, if any hole got stone, take
+			        		for (x <- checkHolePointer to holes.size-1) {
+			        			if (holes(x).getText().toInt != 0) {
 				        			if (player == 1) {
-				        				player1Score.text = (player1Score.getText().toInt + 
-				        					(holes(x).getText().toInt)).toString
-				        				holes(x).text = "0"
-				        				scoreUpdated = true									
+
+				        				latchToWaitForJavaFx = new CountDownLatch(1);
+
+				        				Platform.runLater(new Runnable() {
+								       		override def run {
+								       			player1Score.text = (player1Score.getText().toInt + 
+						        					(holes(x).getText().toInt)).toString
+						        				holes(x).text = "0"
+
+						        				//call this function to release the lock
+				       							latchToWaitForJavaFx.countDown();
+								       		}
+								       	});
+
+								       	//wait until latchToWaitForJavaFx.countDown()
+				       					latchToWaitForJavaFx.await();
+				        				
+				        				scoreUpdated = true
 			        					loop.break
 			        				}
 			        				else {
-				        				player2Score.text = (player2Score.getText().toInt + 
-				        					(holes(x).getText().toInt)).toString
-				        				holes(x).text = "0"
-				        				scoreUpdated = true	        					
-			        					loop.break
-		        					}		        				 
-		        				}
-        					}
-	        			}	        			        		        		
-		        	}
-		        	 if (scoreUpdated) {
-			        	changePlayer()
-			        }
-			        
-			        var player1NoMoves = true
-			        var player2NoMoves = true
-			        //check if player 2 have no more moves
-			        for (x <- 0 to 6) {
-			        	if (holes(x).getText().toInt > 0) {
-			        		player1NoMoves = false
-			        	}
-			        }
-			        for (x <- 7 to holes.size-1) {
-			        	if (holes(x).getText().toInt > 0) {
-			        		player2NoMoves = false
-			        	}
-			        }
+			        					latchToWaitForJavaFx = new CountDownLatch(1);
 
-			       
-			        if (player1NoMoves || player2NoMoves) {
-			        	if (player1Score.getText().toInt > player2Score.getText().toInt) {
-			        		setWinner(1)
+			        					Platform.runLater(new Runnable() {
+								       		override def run {
+								       			player2Score.text = (player2Score.getText().toInt + 
+						        					(holes(x).getText().toInt)).toString
+						        				holes(x).text = "0"
+
+						        				//call this function to release the lock
+				       							latchToWaitForJavaFx.countDown();
+								       		}
+								       	});
+
+								       	//wait until latchToWaitForJavaFx.countDown()
+				       					latchToWaitForJavaFx.await();
+				        				
+				        				scoreUpdated = true		        					
+			        					loop.break
+		        					}		        				
+			        			}
+			        		}
+		        			//if next hole to hole holes.size-1 all empty, check from 0 to current hole
+		        			if (!scoreUpdated) {
+		        				for (x <- 0 to checkHolePointer-1) {
+		        					if (holes(x).getText().toInt != 0) {
+					        			if (player == 1) {
+					        				latchToWaitForJavaFx = new CountDownLatch(1);
+
+					        				Platform.runLater(new Runnable() {
+									       		override def run {
+									       			player1Score.text = (player1Score.getText().toInt + 
+							        					(holes(x).getText().toInt)).toString
+							        				holes(x).text = "0"
+
+							        				//call this function to release the lock
+				       								latchToWaitForJavaFx.countDown();
+									       		}
+									       	});
+									       	//wait until latchToWaitForJavaFx.countDown()
+				       						latchToWaitForJavaFx.await();
+					        				
+					        				scoreUpdated = true									
+				        					loop.break
+				        				}
+				        				else {
+				        					latchToWaitForJavaFx = new CountDownLatch(1);
+
+				        					Platform.runLater(new Runnable() {
+									       		override def run {
+									       			player2Score.text = (player2Score.getText().toInt + 
+							        					(holes(x).getText().toInt)).toString
+							        				holes(x).text = "0"
+
+							        				//call this function to release the lock
+				       								latchToWaitForJavaFx.countDown();
+									       		}
+									       	});
+					        				//wait until latchToWaitForJavaFx.countDown()
+				       						latchToWaitForJavaFx.await();
+
+					        				scoreUpdated = true	        					
+				        					loop.break
+			        					}		        				 
+			        				}
+	        					}
+		        			}	        			        		        		
 			        	}
-			        	else if (player2Score.getText().toInt > player1Score.getText().toInt) {
-			        		setWinner(2)
+
+			        	if(scoreUpdated == true){
+			        		keeploop =false
 			        	}
+				        
+				        var player1NoMoves = true
+				        var player2NoMoves = true
+				        //check if player 2 have no more moves
+				        for (x <- 0 to 8) {
+				        	if (holes(x).getText().toInt > 0) {
+				        		player1NoMoves = false
+				        	}
+				        }
+				        for (x <- 9 to holes.size-1) {
+				        	if (holes(x).getText().toInt > 0) {
+				        		player2NoMoves = false
+				        	}
+				        }
+
+				       	if (player1NoMoves || player2NoMoves) {
+				        	if (player1Score.getText().toInt > player2Score.getText().toInt) {
+						       	SetWinner(1)				        		
+				        	}
+				        	else if (player2Score.getText().toInt > player1Score.getText().toInt) {
+				        		SetWinner(2)
+				        	}else{
+				        		SetWinner(0)
+				        	}
+				        }
+				        else {
+				        	canChooseHole = true
+				        	if (scoreUpdated) {
+					        	ChangePlayer()
+					        	
+					        }  			
+				        }
+
+				              		        	
 			        }
-			        else {
-			        	canChooseHole = true					
-			        }	        		        	
-		        }
+			    }// end keep loop
 		       
 		    }
 		}
@@ -319,17 +417,120 @@ class BigGameController(
 		
 	}
 
+
 	def AICalculateBestMove() = {
-		/*calculate best move*/
+		
+		var bestScore:Int = -1;
+		var holeShouldBeChosen:Int = 0;
+		for (predict <- 0 to 8){			
+			if(PredictHoleScore(predict) > bestScore && holes(predict).getText().toInt != 0){
+				bestScore = PredictHoleScore(predict);
+				holeShouldBeChosen = predict;
+			}
+		}
+		ChooseHole(holeShouldBeChosen,2);
+	}
+
+	def PredictHoleScore(holeToPredict: Int):Int = {
+		var holeIndex = holeToPredict;
+		var scoreFound = false;
+		var predictedScore:Int = 0;
+
+		var duplicatedBoardHole = Array(holes(0).getText().toInt,holes(1).getText().toInt,holes(2).getText().toInt,holes(3).getText().toInt,holes(4).getText().toInt,
+				holes(5).getText().toInt,holes(6).getText().toInt,holes(7).getText().toInt,holes(8).getText().toInt,holes(9).getText().toInt,holes(10).getText().toInt,
+				holes(11).getText().toInt,holes(12).getText().toInt,holes(13).getText().toInt,holes(14).getText().toInt,holes(15).getText().toInt,
+				holes(16).getText().toInt,holes(17).getText().toInt);
+
+		var keeplooping = true
+		while(keeplooping == true){
+			var duplicateHand = 0;
+
+			//amount of seed in the Hole
+			var amountInHole: Int = duplicatedBoardHole(holeIndex)
+			var holePointer = holeIndex
+			var nextHole = holePointer+1
+			
+
+	       	duplicatedBoardHole(holeIndex) = 0 // set hole value to 0	
+					
+			var amountInHand = amountInHole
+			duplicateHand = amountInHand
+			amountInHole = 0
+
+			while ( amountInHand > 0){
+
+				if (holePointer >= duplicatedBoardHole.size-1) {
+					nextHole = 0
+				}
+
+				for (hole <- 0 to duplicatedBoardHole.size-1) {
+					if (hole == holePointer) {
+						var holeNewAmount = duplicatedBoardHole(nextHole) + 1
+						duplicatedBoardHole(nextHole) = holeNewAmount
+					}
+				}
 
 
+	        	duplicateHand = duplicateHand - 1
 
-		/*end calculate*/
+				if (holePointer == duplicatedBoardHole.size-1) {
+					holePointer = 0
+				}
+				else {
+					holePointer += 1
+				}					
+				nextHole = holePointer + 1
+	       		amountInHand = amountInHand - 1
+	        }
 
-		//choose bestmove 
-		//i randomly put to choose hole 7 
-		//chooseHole(7)
+	       
+	        if (holePointer >= duplicatedBoardHole.size-1) {
+					nextHole = 0
+			}
 
+	        val loop = new Breaks
+	        var scoreUpdated = false
+	        //if next hole still got stones, take and distribute
+	        if (duplicatedBoardHole(nextHole) > 0) {
+	        	holeIndex= nextHole       	
+	        }
+	        else {
+	        	loop.breakable {		        		
+	        		var checkHolePointer = nextHole+1
+	        		if (checkHolePointer > duplicatedBoardHole.size-1) {
+	        			checkHolePointer = 0
+	        		}
+
+	        		//check current hole to hole holes.size-1, if any hole got stone, take
+	        		for (x <- checkHolePointer to duplicatedBoardHole.size-1) {
+	        			if (duplicatedBoardHole(x) != 0) {
+	        				predictedScore = duplicatedBoardHole(x)	        			
+	        				scoreUpdated = true 
+	        				scoreFound = true
+	        				loop.break  				
+	        			}
+	        		}
+	    			//if next hole to hole holes.size-1 all empty, check from 0 to current hole
+	    			if (!scoreUpdated) {
+	    				for (x <- 0 to checkHolePointer-1) {
+	    					if (duplicatedBoardHole(x) != 0) {
+	    						predictedScore = duplicatedBoardHole(x)
+	    						scoreUpdated = true									
+		        				scoreFound= true
+		        				loop.break
+	        				 
+	        				}
+						}
+	    			}	        			        		        		
+	        	}		        	
+	        }
+
+	        if(scoreFound == true){
+	        	keeplooping =false;
+	        }
+
+		}
+    	return predictedScore
 	}
 
 	//call this method when game is end
@@ -337,7 +538,7 @@ class BigGameController(
 	//player value to 1 if player 1 wins || player value set to 2 if player 2 wins || player value set to 0 if no one wins(Tie)
 	//player1Score is the score of player1
 	//player2Score is the score of player2
-	def setWinner(player:Int): Unit = {
+	def SetWinner(player:Int): Unit = {
 
 		//redirect to Winner Screen to display the winner
 		MainApp.goToWinnerScreen(player,player1Score.getText().toInt,player2Score.getText().toInt)
@@ -345,7 +546,7 @@ class BigGameController(
 
 	
 	
-	def setHoleHoverEffect() = {	
+	def SetHoleHoverEffect() = {	
 
 		//hole 0 to 8 is for player 2 to choose
 		for(index <- 0 to 8){
@@ -407,7 +608,7 @@ class BigGameController(
 
 	}
 
-	def initializeHoleOnAction() = {	
+	def InitializeHoleOnAction() = {	
 
 		//hole 0 to 8 is for player 2 to choose
 		for(index <- 0 to 8){
@@ -415,7 +616,7 @@ class BigGameController(
 
 			currentHoleObject.onMouseClicked = (event: MouseEvent) =>  {  
 				if(canChooseHole == true && currentPlayer == "Player2" && currentHoleObject.getText != "0"){ 
-					chooseHole(index, 2)
+					ChooseHole(index, 2)
 					//show a Cursor that indicate cannot choose
 				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
 				  	//change background red
@@ -431,7 +632,7 @@ class BigGameController(
 
 			currentHoleObject.onMouseClicked = (event: MouseEvent) =>  {  
 				if(canChooseHole == true && currentPlayer == "Player1" && currentHoleObject.getText != "0"){ 
-					chooseHole(index, 1)
+					ChooseHole(index, 1)
 					//show a Cursor that indicate cannot choose
 				  	currentHoleObject.setCursor(new ImageCursor(new Image(getClass.getResourceAsStream("/Images/Game/CancelCursor.png"))))
 				  	//change background red
@@ -444,65 +645,28 @@ class BigGameController(
 
 	
 	/*-------------------------Animation Function----------------------------------------------------------------------------------------*/
-	def setHoleBackgroundToYellow(holeIndex: Int) = {
+	def SetHoleBackgroundToYellow(holeIndex: Int) = {
 		//use Platform runlater because if you call UI object in thread you need to use this function
 		Platform.runLater(new Runnable() {
        		override def run {
-       			holeIndex match {
-				    case 0  => hole0.setStyle(yellowBackgroundHoleCSS) 
-				    case 1  => hole1.setStyle(yellowBackgroundHoleCSS) 
-				    case 2  => hole2.setStyle(yellowBackgroundHoleCSS) 
-				    case 3  => hole3.setStyle(yellowBackgroundHoleCSS) 
-				    case 4  => hole4.setStyle(yellowBackgroundHoleCSS) 
-				    case 5  => hole5.setStyle(yellowBackgroundHoleCSS) 
-				    case 6  => hole6.setStyle(yellowBackgroundHoleCSS) 
-				    case 7  => hole7.setStyle(yellowBackgroundHoleCSS) 
-				    case 8  => hole8.setStyle(yellowBackgroundHoleCSS) 
-				    case 9  => hole9.setStyle(yellowBackgroundHoleCSS) 
-				    case 10 => hole10.setStyle(yellowBackgroundHoleCSS) 
-				    case 11 => hole11.setStyle(yellowBackgroundHoleCSS) 
-				    case 12 => hole12.setStyle(yellowBackgroundHoleCSS) 
-				    case 13 => hole13.setStyle(yellowBackgroundHoleCSS)  
-				    case 14 => hole14.setStyle(yellowBackgroundHoleCSS) 
-				    case 15 => hole15.setStyle(yellowBackgroundHoleCSS) 
-				    case 16 => hole16.setStyle(yellowBackgroundHoleCSS) 
-				    case 17 => hole17.setStyle(yellowBackgroundHoleCSS)  
-				}
+       			holes(holeIndex).setStyle(yellowBackgroundHoleCSS)
+       			
        		}
        	});
 		
 	}
 
-	def setHoleBackgroundToNormal(holeIndex: Int) = {
+	def SetHoleBackgroundToNormal(holeIndex: Int) = {
 		//use Platform runlater because if you call UI object in thread you need to use this function
 		Platform.runLater(new Runnable() {
        		override def run {
-       			holeIndex match {
-				    case 0  => hole0.setStyle(normalBackgroundHoleCSS) 
-				    case 1  => hole1.setStyle(normalBackgroundHoleCSS) 
-				    case 2  => hole2.setStyle(normalBackgroundHoleCSS) 
-				    case 3  => hole3.setStyle(normalBackgroundHoleCSS) 
-				    case 4  => hole4.setStyle(normalBackgroundHoleCSS) 
-				    case 5  => hole5.setStyle(normalBackgroundHoleCSS) 
-				    case 6  => hole6.setStyle(normalBackgroundHoleCSS) 
-				    case 7  => hole7.setStyle(normalBackgroundHoleCSS) 
-				    case 8  => hole8.setStyle(normalBackgroundHoleCSS) 
-				    case 9  => hole9.setStyle(normalBackgroundHoleCSS) 
-				    case 10 => hole10.setStyle(normalBackgroundHoleCSS) 
-				    case 11 => hole11.setStyle(normalBackgroundHoleCSS) 
-				    case 12 => hole12.setStyle(normalBackgroundHoleCSS) 
-				    case 13 => hole13.setStyle(normalBackgroundHoleCSS)  
-				    case 14 => hole14.setStyle(normalBackgroundHoleCSS) 
-				    case 15 => hole15.setStyle(normalBackgroundHoleCSS) 
-				    case 16 => hole16.setStyle(normalBackgroundHoleCSS) 
-				    case 17 => hole17.setStyle(normalBackgroundHoleCSS)  
-				}
+       			holes(holeIndex).setStyle(normalBackgroundHoleCSS)
        		}
        	});
 		
 	}
 
-	def minusOneAtHoleAnimation(holeIndex: Int) = {
+	def AddOneAtHoleAnimation(holeIndex: Int) = {
 
 		//use Platform runlater because if you call UI object in thread you need to use this function
 		Platform.runLater(new Runnable() {
@@ -510,90 +674,7 @@ class BigGameController(
        			var holeReferenceObject: TextField = null
 
 				// get object reference according to holeIndex
-				holeIndex match {
-				    case 0  => holeReferenceObject = hole0
-				    case 1  => holeReferenceObject = hole1
-				    case 2  => holeReferenceObject = hole2
-				    case 3  => holeReferenceObject = hole3
-				    case 4  => holeReferenceObject = hole4
-				    case 5  => holeReferenceObject = hole5
-				    case 6  => holeReferenceObject = hole6
-				    case 7  => holeReferenceObject = hole7
-				    case 8  => holeReferenceObject = hole8
-				    case 9  => holeReferenceObject = hole9
-				    case 10  => holeReferenceObject = hole10
-				    case 11  => holeReferenceObject = hole11
-				    case 12  => holeReferenceObject = hole12
-				    case 13  => holeReferenceObject = hole13
-				    case 14  => holeReferenceObject = hole14
-				    case 15  => holeReferenceObject = hole15
-				    case 16  => holeReferenceObject = hole16
-				    case 17  => holeReferenceObject = hole17
-				}
-
-
-				//create the font object
-				var textMinus1 = new Text(holeReferenceObject.getLayoutX+30,holeReferenceObject.getLayoutY+30,"-1");
-
-				//set font
-				textMinus1.setFont(Font.font("Arial", FontWeight.BOLD, 20))
-				textMinus1.setFill(Paint.valueOf("red"))
-
-				//add the textMinus1 to screen
-				myGameBoard.getChildren().add(textMinus1);
-
-				//do animation
-				var animation = new TranslateTransition(new Duration(1000),textMinus1)
-
-				//from location
-				//animation.fromX = textMinus1.getLayoutX
-				//animation.fromY = textMinus1.getLayoutY
-
-				//to destination location
-				animation.toY = -30 // move up
-
-				//play only one time
-				animation.cycleCount = 1
-
-				animation.onFinished = (event: ActionEvent) =>  {  
-					//remove after animation done
-					myGameBoard.getChildren().remove(textMinus1)
-				}
-
-
-				animation.play()
-       		}
-       	});
-	}
-
-	def addOneAtHoleAnimation(holeIndex: Int) = {
-
-		//use Platform runlater because if you call UI object in thread you need to use this function
-		Platform.runLater(new Runnable() {
-       		override def run {
-       			var holeReferenceObject: TextField = null
-
-				// get object reference according to holeIndex
-				holeIndex match {
-				    case 0  => holeReferenceObject = hole0
-				    case 1  => holeReferenceObject = hole1
-				    case 2  => holeReferenceObject = hole2
-				    case 3  => holeReferenceObject = hole3
-				    case 4  => holeReferenceObject = hole4
-				    case 5  => holeReferenceObject = hole5
-				    case 6  => holeReferenceObject = hole6
-				    case 7  => holeReferenceObject = hole7
-				    case 8  => holeReferenceObject = hole8
-				    case 9  => holeReferenceObject = hole9
-				    case 10  => holeReferenceObject = hole10
-				    case 11  => holeReferenceObject = hole11
-				    case 12  => holeReferenceObject = hole12
-				    case 13  => holeReferenceObject = hole13
-				    case 14  => holeReferenceObject = hole14
-				    case 15  => holeReferenceObject = hole15
-				    case 16  => holeReferenceObject = hole16
-				    case 17  => holeReferenceObject = hole17
-				}
+				holeReferenceObject = holes(holeIndex)
 
 
 				//create the font object
@@ -607,7 +688,7 @@ class BigGameController(
 				myGameBoard.getChildren().add(textMinus1);
 
 				//do animation
-				var animation = new TranslateTransition(new Duration(500),textMinus1)
+				var animation = new TranslateTransition(new Duration(200),textMinus1)
 
 				
 				//to destination location
@@ -628,142 +709,7 @@ class BigGameController(
 		
 	}
 
-	def grabFromHoleAndAddScoreToCurrentPlayerAnimation(holeIndex: Int) = {
-		//use Platform runlater because if you call UI object in thread you need to use this function
-		Platform.runLater(new Runnable() {
-       		override def run {
-
-       			var currentPlayerScoreHole: TextField = null
-
-       			if(currentPlayer == "Player1"){
-       				currentPlayerScoreHole = player1Score
-       			}else{
-       				currentPlayerScoreHole = player2Score
-       			}
-
-       			var holeReferenceObject: TextField = null
-
-				// get object reference according to holeIndex
-				holeIndex match {
-				    case 0  => holeReferenceObject = hole0
-				    case 1  => holeReferenceObject = hole1
-				    case 2  => holeReferenceObject = hole2
-				    case 3  => holeReferenceObject = hole3
-				    case 4  => holeReferenceObject = hole4
-				    case 5  => holeReferenceObject = hole5
-				    case 6  => holeReferenceObject = hole6
-				    case 7  => holeReferenceObject = hole7
-				    case 8  => holeReferenceObject = hole8
-				    case 9  => holeReferenceObject = hole9
-				    case 10  => holeReferenceObject = hole10
-				    case 11  => holeReferenceObject = hole11
-				    case 12  => holeReferenceObject = hole12
-				    case 13  => holeReferenceObject = hole13
-				    case 14  => holeReferenceObject = hole14
-				    case 15  => holeReferenceObject = hole15
-				    case 16  => holeReferenceObject = hole16
-				    case 17  => holeReferenceObject = hole17
-				}
-
-				//duplicate the hole
-				var newHole:TextField = new TextField();
-				newHole.setLayoutX(holeReferenceObject.getLayoutX())
-				newHole.setLayoutY(holeReferenceObject.getLayoutY())
-				newHole.setText(holeReferenceObject.getText)
-				newHole.setStyle(normalBackgroundHoleCSS)
-				newHole.prefWidth = 50
-				newHole.prefHeight = 50
-				newHole.opacity = 1
-				newHole.disable = true
-
-				//add new Hole to Display
-				myGameBoard.getChildren().add(newHole);
-
-				
-				//do animation
-				var animationMoveHoleToScore = new TranslateTransition(new Duration(1000),newHole)
-
-				//from location
-				//animationMoveHoleToScore.fromX = newHole.getLayoutX
-				//animationMoveHoleToScore.fromY = newHole.getLayoutY
-
-				//to destination location
-				//set destination to player score hole
-				//toX will specify value to be add to X axis and toY will specify value to be add to Y axis
-				//we want to move newHole toward the PlayerScoreHole location
-				//so we will do Destination minus current location to get distance between X axis and Y axis
-				animationMoveHoleToScore.toX = currentPlayerScoreHole.getLayoutX() - newHole.getLayoutX()
-				animationMoveHoleToScore.toY = currentPlayerScoreHole.getLayoutY() - newHole.getLayoutY()
-
-				//play only one time
-				animationMoveHoleToScore.cycleCount = 1
-
-				animationMoveHoleToScore.onFinished = (event: ActionEvent) =>  {  
-					//remove after hole after done
-					myGameBoard.getChildren().remove(newHole)
-
-					//play add Score animation
-					if(currentPlayer == "Player1"){
-						addAmountToPlayerScoreHoleAnimation(1,holeReferenceObject.getText)
-					}else{
-						addAmountToPlayerScoreHoleAnimation(2,holeReferenceObject.getText)
-					}
-					
-				}
-
-
-				animationMoveHoleToScore.play()
-				
-       		}
-       	});
-	}
-
-	def addAmountToPlayerScoreHoleAnimation(player: Int, amount: String) = {
-
-		//use Platform runlater because if you call UI object in thread you need to use this function
-		Platform.runLater(new Runnable() {
-       		override def run {
-       			var scoreHoleReferenceObject: TextField = null
-
-				// get object reference according to holeIndex
-				player match {
-				    case 1  => scoreHoleReferenceObject = player1Score
-				    case 2  => scoreHoleReferenceObject = player2Score
-				}
-
-
-				//create the font object
-				var textAddScore = new Text(scoreHoleReferenceObject.getLayoutX+30,scoreHoleReferenceObject.getLayoutY+50,"+"+amount);
-
-				//set font
-				textAddScore.setFont(Font.font("Arial", FontWeight.BOLD, 20))
-				textAddScore.setFill(Paint.valueOf("red"))
-
-				//add the textMinus1 to screen
-				myGameBoard.getChildren().add(textAddScore);
-
-				//do animation
-				var animation = new TranslateTransition(new Duration(500),textAddScore)
-
-
-				//to destination location
-				animation.toY = -50 // move up
-
-				//play only one time
-				animation.cycleCount = 1
-
-				animation.onFinished = (event: ActionEvent) =>  {  
-					//remove after animation done
-					myGameBoard.getChildren().remove(textAddScore)
-				}
-
-				animation.play()
-       		}
-       	});
-		
-	}
-
-	def grabFromHoleAndAddToHandAnimation(holeIndex: Int, handAmount:Int) = {
+	def GrabFromHoleAndAddToHandAnimation(holeIndex: Int, handAmount:Int) = {
 		//use Platform runlater because if you call UI object in thread you need to use this function
 		Platform.runLater(new Runnable() {
        		override def run {
@@ -771,26 +717,8 @@ class BigGameController(
        			var holeReferenceObject: TextField = null
 
 				// get object reference according to holeIndex
-				holeIndex match {
-				    case 0  => holeReferenceObject = hole0
-				    case 1  => holeReferenceObject = hole1
-				    case 2  => holeReferenceObject = hole2
-				    case 3  => holeReferenceObject = hole3
-				    case 4  => holeReferenceObject = hole4
-				    case 5  => holeReferenceObject = hole5
-				    case 6  => holeReferenceObject = hole6
-				    case 7  => holeReferenceObject = hole7
-				    case 8  => holeReferenceObject = hole8
-				    case 9  => holeReferenceObject = hole9
-				    case 10  => holeReferenceObject = hole10
-				    case 11  => holeReferenceObject = hole11
-				    case 12  => holeReferenceObject = hole12
-				    case 13  => holeReferenceObject = hole13
-				    case 14  => holeReferenceObject = hole14
-				    case 15  => holeReferenceObject = hole15
-				    case 16  => holeReferenceObject = hole16
-				    case 17  => holeReferenceObject = hole17
-				}
+       			holeReferenceObject = holes(holeIndex)
+
 
 				//duplicate the hole
 				var newHole:TextField = new TextField();
@@ -833,7 +761,7 @@ class BigGameController(
 					myGameBoard.getChildren().remove(newHole)
 
 					//play add Score animation
-					addAmountToHandAnimation(handAmount.toString)					
+					AddAmountToHandAnimation(handAmount.toString)					
 					
 				}
 
@@ -844,7 +772,7 @@ class BigGameController(
        	});
 	}
 
-	def addAmountToHandAnimation(amount: String) = {
+	def AddAmountToHandAnimation(amount: String) = {
 
 		//use Platform runlater because if you call UI object in thread you need to use this function
 		Platform.runLater(new Runnable() {
@@ -883,11 +811,9 @@ class BigGameController(
 	}
 
 
-	def quitGame() = {
+	def QuitGame() = {
 		MainApp.goToMainScreen()
-	}	
-
-
+	}
 	
 	
 }
